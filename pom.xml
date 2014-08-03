@@ -1,0 +1,369 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.dant3</groupId>
+    <artifactId>squirrel-android-example</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <packaging>apk</packaging>
+    <name>Squirrel example on Application</name>
+
+    <scm>
+        <connection>scm:git:[fetch=]http://github.com/dant3/squirrel-android-example</connection>
+        <developerConnection>scm:git:[push=]git@github.com:dant3/squirrel-android-example.git</developerConnection>
+    </scm>
+
+    <properties>
+        <javac.additionalArgs>-Xbootclasspath:${java.home}/lib/rt.jar</javac.additionalArgs>
+
+        <skipAnalyze>false</skipAnalyze>
+        <artifact.name>${project.artifactId}-${project.version}.${project.packaging}</artifact.name>
+
+        <!-- java compile opts -->
+        <java.version>1.6</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <relativizeDecorationLinks>false</relativizeDecorationLinks>
+
+        <!--<resourcespackage>${project.groupId}</resourcespackage>-->
+
+        <!-- see android packages here: http://search.maven.org/#browse%7C1382000168 -->
+        <android.version>4.1.1.4</android.version>
+        <android.sdk.platform>19</android.sdk.platform>
+
+        <!-- release/debug settings -->
+        <project.build.debug>true</project.build.debug>
+        <project.build.release>false</project.build.release>
+        <android.sign.debug>auto</android.sign.debug>
+
+        <!-- constants -->
+        <android.manifestForApk>${project.build.directory}/AndroidManifest.xml</android.manifestForApk>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>android-sdk-support</id>
+            <url>file://${env.ANDROID_HOME}/extras/android/m2repository</url>
+        </repository>
+        <repository>
+            <id>android-sdk-google</id>
+            <url>file://${env.ANDROID_HOME}/extras/google/m2repository</url>
+        </repository>
+        <repository>
+            <id>oss-sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- base android dependencies -->
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <version>${android.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.android.support</groupId>
+            <artifactId>support-v4</artifactId>
+            <version>19.0.1</version>
+        </dependency>
+
+        <!-- injections for android -->
+        <dependency>
+            <groupId>org.androidannotations</groupId>
+            <artifactId>androidannotations</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.androidannotations</groupId>
+            <artifactId>androidannotations-api</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <!-- slf4j compatible logger impl -->
+        <!-- See https://github.com/tony19/logback-android for manuals, examples and actual code -->
+        <dependency>
+            <groupId>com.github.tony19</groupId>
+            <artifactId>logback-android-core</artifactId>
+            <version>1.0.10-2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tony19</groupId>
+            <artifactId>logback-android-classic</artifactId>
+            <version>1.0.10-2</version>
+        </dependency>
+
+        <!-- compile-time annotations -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.14.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- FSM -->
+        <dependency>
+            <groupId>org.squirrelframework</groupId>
+            <artifactId>squirrel-foundation</artifactId>
+            <version>0.3.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javassist</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>dom4j</groupId>
+                    <artifactId>dom4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <resources>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <targetPath>${project.build.directory}</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>AndroidManifest.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <targetPath>${project.build.directory}/resources</targetPath>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.3.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[3.1.1,)</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>[1.6,)</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <compilerVersion>${java.version}</compilerVersion>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <debug>${project.build.debug}</debug>
+                    <optimize>${project.build.release}</optimize>
+                    <failOnError>true</failOnError>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                    <compilerArgs>
+                        <!--<arg>-Werror</arg>-->
+                        <arg>-Xlint:all</arg>
+                        <arg>-Xlint:-processing</arg>
+                        <arg>${javac.additionalArgs}</arg>
+                        <!-- android annotations compile-time options -->
+                        <!--<arg>-AresourcePackageName=${resourcespackage}</arg>-->
+                        <arg>-AlogLevel=WARN</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14.1</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <android.manifest>${android.manifestForApk}</android.manifest>
+                        <android.resources>${project.build.directory}/resources</android.resources>
+                        <android.assets>${project.basedir}/src/main/assets</android.assets>
+                        <projectDirectory>${project.basedir}</projectDirectory>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shortRevisionLength>8</shortRevisionLength>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <version>3.8.2</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <!-- manifest settings -->
+                    <androidManifestFile>${android.manifestForApk}</androidManifestFile>
+                    <!--<customPackage>${resourcespackage}</customPackage>-->
+                    <manifestDebuggable>${project.build.debug}</manifestDebuggable>
+                    <release>${project.build.release}</release>
+                    <!--<renameManifestPackage>${android.manifest.packageName}</renameManifestPackage>-->
+
+                    <!-- directories -->
+                    <resourceDirectory>${project.build.directory}/resources</resourceDirectory>
+                    <assetsDirectory>${project.basedir}/src/main/assets</assetsDirectory>
+
+                    <!-- reasonable static setup -->
+                    <extractDuplicates>true</extractDuplicates>
+                    <undeployBeforeDeploy>true</undeployBeforeDeploy>
+
+                    <!-- dex settings -->
+                    <dex>
+                        <preDex>true</preDex>
+                        <optimize>${project.build.release}</optimize>
+                    </dex>
+                    <!-- lint settings -->
+                    <lint>
+                        <skip>true</skip>
+                        <failOnError>true</failOnError>
+                        <ignoreWarnings>false</ignoreWarnings>
+                        <showAll>true</showAll>
+                        <enableXml>true</enableXml>
+                        <enableHtml>true</enableHtml>
+                        <enableLibraries>false</enableLibraries>
+                        <disableSourceLines>false</disableSourceLines>
+                        <enableSources>true</enableSources>
+                    </lint>
+                    <proguard>
+                        <!-- TODO: when releasing application we might want to strip some code -->
+                        <skip>false</skip>
+                        <config>proguard.cfg</config>
+                        <configs>
+                            <config>${env.ANDROID_HOME}/tools/proguard/proguard-android.txt</config>
+                        </configs>
+                        <jvmArguments>
+                            <jvmArgument>-Xms256m</jvmArgument>
+                            <jvmArgument>-Xmx512m</jvmArgument>
+                        </jvmArguments>
+                        <outputDirectory>${project.build.directory}/proguard</outputDirectory>
+                        <filterMavenDescriptor>true</filterMavenDescriptor>
+                        <filterManifest>true</filterManifest>
+                    </proguard>
+                    <zipalign>
+                        <skip>${project.build.debug}</skip>
+                        <verbose>true</verbose>
+                        <inputApk>${project.build.directory}/${project.build.finalName}.apk</inputApk>
+                        <outputApk>${project.build.directory}/${project.build.finalName}.apk</outputApk>
+                    </zipalign>
+                </configuration>
+                <executions>
+                    <!-- enable lint analyzer -->
+                    <execution>
+                        <id>lint</id>
+                        <goals>
+                            <goal>lint</goal>
+                        </goals>
+                        <phase>test-compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>${project.packaging}</type>
+                                    <overWrite>true</overWrite>
+                                    <destFileName>${artifact.name}</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/artifacts/</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
