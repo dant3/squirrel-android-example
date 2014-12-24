@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    packagingOptions {
+        exclude 'AndroidManifest.xml'
+        exclude 'resources.arsc'
+    }
+
+    defaultConfig {
+        applicationId "com.github.dant3.squirrel"
+        minSdkVersion 15
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:support-v4:21.0.3'
+    provided 'com.google.android:android:4.1.1.4'
+    provided 'org.projectlombok:lombok:1.14.8'
+    // --=[ FSM ]=--
+    compile(group: 'org.squirrelframework', name: 'squirrel-foundation', version:'0.3.4') {
+        exclude(group: 'javaassist', module: 'javassist')
+        exclude(group: 'dom4j', module: 'dom4j')
+        exclude(group: 'org.slf4j', module: 'slf4j-log4j12')
+        exclude(group: 'log4j', module: 'log4j')
+        exclude(group: 'org.mvel', module: 'mvel2')
+        exclude(group: 'com.google.code.gson', module: 'gson')
+    }
+    // --=[ android logger backend ]=--
+    compile('com.github.tony19:logback-android-classic:1.1.1-3')
+    compile('com.github.tony19:logback-android-core:1.1.1-3')
+    // --=[ logger facade ]=--
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.5'
+}

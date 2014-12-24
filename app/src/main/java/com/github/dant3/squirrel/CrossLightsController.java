@@ -16,36 +16,58 @@
 
 package com.github.dant3.squirrel;
 
+import android.os.Handler;
+import com.github.dant3.squirrel.utils.Observable;
+import com.github.dant3.squirrel.utils.ObservableSupport;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
 import org.squirrelframework.foundation.fsm.AnonymousAction;
 import org.squirrelframework.foundation.fsm.StateMachineBuilder;
 import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
 import org.squirrelframework.foundation.fsm.impl.AbstractStateMachine;
 
+@Slf4j
 public class CrossLightsController extends
-        AbstractStateMachine<CrossLightsController, Light, CrossLightsController.Event, Object> {
+        AbstractStateMachine<CrossLightsController, Light, CrossLightsController.Event, Object>
+        implements Observable<CrossLightsController> {
+    public static final int SWITCH_TIME_MILLIS = 1000;
+
+    @Delegate
+    private final ObservableSupport<CrossLightsController> observableSupport =
+            new ObservableSupport<CrossLightsController>(this);
 
     public static CrossLightsController create() {
         StateMachineBuilder<CrossLightsController, Light, Event, Object> builder =
                 StateMachineBuilderFactory.create(CrossLightsController.class, Light.class, Event.class, Object.class);
 
-        builder.externalTransition().from(Light.RED).to(Light.YELLOW).on(Event.TurnYellow);
-        builder.externalTransition().from(Light.GREEN).to(Light.YELLOW).on(Event.TurnYellow);
-                builder.externalTransition().from(Light.YELLOW).to(Light.GREEN).on(Event.TurnGreen);
+        builder.externalTransition().from(Light.RED).to(Light.YELLOW).on(Event.TurnYellow).perform(new FireEventAfter(Event.TurnGreen, SWITCH_TIME_MILLIS));
+        builder.externalTransition().from(Light.GREEN).to(Light.YELLOW).on(Event.TurnYellow).perform(new FireEventAfter(Event.TurnRed, SWITCH_TIME_MILLIS));
+        builder.externalTransition().from(Light.YELLOW).to(Light.GREEN).on(Event.TurnGreen);
         builder.externalTransition().from(Light.YELLOW).to(Light.RED).on(Event.TurnRed);
+
+        builder.onEntry(Light.RED).perform(new FireEventAfter(Event.TurnYellow, SWITCH_TIME_MILLIS));
+        builder.onEntry(Light.GREEN).perform(new FireEventAfter(Event.TurnYellow, SWITCH_TIME_MILLIS));
 
         return builder.newStateMachine(Light.RED);
     }
-
 
     @RequiredArgsConstructor(suppressConstructorProperties = true)
     private static class FireEventAfter extends AnonymousAction<CrossLightsController, Light, Event, Object> {
         private final Event eventToFire;
         private final int delay;
+        private final Handler handler=new Handler();
 
         @Override
-        public void execute(Light from, Light to, Event event, Object context, CrossLightsController stateMachine) {
-            // TODO
+        public void execute(Light from, final Light to, final Event event, Object context, final CrossLightsController stateMachine) {
+            Runnable action = new Runnable() {
+                public void run() {
+                    stateMachine.notifyObservers();
+                    log.warn("{} lighted", to.toString());
+                    stateMachine.fire(eventToFire);
+                }
+            };
+            handler.postDelayed(action, delay);
         }
     }
 
